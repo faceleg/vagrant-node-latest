@@ -1,1 +1,1 @@
-$projects = '../../projects/'
+$projects = '../../BPB/projects/'

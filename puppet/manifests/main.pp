@@ -6,8 +6,6 @@ Stage['first'] -> Stage['main'] -> Stage['last']
 
 import 'basic.pp'
 
-import '../../configuration/nodejs.pp'
-import '../../configuration/zsh.pp'
 import '../../configuration/mongodb.pp'
 import '../../configuration/mysql.pp'
 

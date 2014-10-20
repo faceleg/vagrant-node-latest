@@ -1,30 +1,16 @@
 #!/bin/sh
+export DEBIAN_FRONTEND=noninteractive
 
-# Directory in which librarian-puppet should manage its modules directory
+APT_GET=/usr/bin/apt-get
+$APT_GET -q -y install git puppet ruby
+
+if [ `gem query --local | grep r10k | wc -l` -eq 0 ]; then
+  sudo gem install r10k
+fi
+
 PUPPET_DIR='/vagrant/puppet'
 
-# NB: librarian-puppet might need git installed. If it is not already installed
-# in your basebox, this will manually install it at this point using apt or yum
-GIT=/usr/bin/git
-APT_GET=/usr/bin/apt-get
-YUM=/usr/sbin/yum
-if [ ! -x $GIT ]; then
-    if [ -x $YUM ]; then
-        yum -q -y install git puppet
-    elif [ -x $APT_GET ]; then
-        $APT_GET update --fix-missing
-        $APT_GET -q -y install git puppet
-    else
-        echo "No package installer available. You may need to install git manually."
-    fi
-fi
-
-if [ `gem query --local | grep librarian-puppet | wc -l` -eq 0 ]; then
-  gem install librarian-puppet
-  cd $PUPPET_DIR && librarian-puppet install --clean
-else
-  cd $PUPPET_DIR && librarian-puppet update
-fi
-
+cd $PUPPET_DIR
+sudo r10k puppetfile install
 sudo -E puppet apply -vv --modulepath=$PUPPET_DIR/modules/ $PUPPET_DIR/manifests/main.pp
 

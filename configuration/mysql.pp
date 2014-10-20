@@ -1,12 +1,3 @@
-/* file { 'my.cnf': */
-/*   path    => '/root/.my.cnf', */
-/*   ensure  => present, */
-/*   mode    => 0640, */
-/*   content => "[client] */
-/*   user=root */
-/*   pass=root", */
-/* } */
-
 class { '::mysql::server':
   root_password => 'root',
   old_root_password => 'root',

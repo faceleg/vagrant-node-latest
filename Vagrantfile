@@ -10,8 +10,8 @@
 # vagrant plugin install vagrant-hostsupdater
 
 Vagrant::configure("2") do |config|
-  config.vm.box = "Debian Wheezy 7.2 amd64"
-  config.vm.box_url = "https://s3-eu-west-1.amazonaws.com/ffuenf-vagrant-boxes/debian/debian-7.2.0-amd64.box"
+  config.vm.box = "Official Ubuntu 14.04 daily Cloud Image amd64 (Development release, No Guest Additions)"
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
 
   load File.expand_path("./user/directories.pp")
   config.vm.synced_folder $projects, "/srv/www/", :nfs => true
@@ -19,6 +19,11 @@ Vagrant::configure("2") do |config|
 
   config.vm.network :private_network,
     ip: "192.168.10.10"
+  config.vm.network :forwarded_port,
+    guest: 22,
+    host: 2210,
+    id: "ssh",
+    auto_correct: true
 
   config.vm.hostname = "www.bpb-vagrant-node-latest.dev"
   config.hostsupdater.remove_on_suspend = true
@@ -33,8 +38,21 @@ Vagrant::configure("2") do |config|
     ]
   end
 
-  load File.expand_path("../user/mysql-dbs.pp", __FILE__)
-  $facts = "export FACTER_mysql_dbs=\""
+  load File.expand_path("../user/vhosts.pp", __FILE__)
+  config.hostsupdater.aliases = $vhosts.keys
+  config.hostsupdater.remove_on_suspend = true
+
+  config.vm.provision :shell, :path => "shell/update-apt.sh"
+
+  # Prepare facts
+  $facts = "export FACTER_vagrant_apache_vhosts=\""
+  $vhosts.each do |name, directory|
+    $facts += name + "," + directory + " "
+  end
+  $facts += "\";\n"
+
+  load File.expand_path("../user/dbs.pp", __FILE__)
+  $facts += "export FACTER_dbs=\""
   $dbs.each do |name, username_password|
     $facts += name + "," + username_password + " "
   end
